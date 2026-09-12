@@ -83,7 +83,7 @@ function App() {
           <a className="brand" href="#home">
             <img src={`${import.meta.env.BASE_URL}assets/university-seal.png`} alt="University seal" />
             <div>
-              <div className="brand-title"><span> KHALLIKOTE UNITARY UNIVERSITY MCA</span> <span>Notes Portal</span></div>
+              <div className="brand-title"><h2> KHALLIKOTE UNITARY UNIVERSITY</h2> MCA <span>Notes Portal</span></div>
               <div className="brand-subtitle">UNIVERSITY, BERHAMPUR, ODISHA</div>
               <div className="brand-tagline">Learn Together, Grow Together</div>
             </div>
