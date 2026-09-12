@@ -53,11 +53,7 @@ const subjectsBySemester = {
 };
 
 const updates = [
-  ["11 Sep 2026", "DBMS - New Notes Added"],
-  ["09 Sep 2026", "C Programming - Unit 2"],
-  ["07 Sep 2026", "Mathematics - Previous Year Questions"],
-  ["05 Sep 2026", "Operating Systems - Notes"],
-  ["01 Sep 2026", "Welcome to MCA Notes Portal!"]
+  ["13 Sep 2026", "Welcome to MCA Notes Portal!"]
 ];
 
 const cardClasses = ["blue", "green", "pink", "purple", "yellow", "cyan", "pink"];
