@@ -62,19 +62,7 @@ const subjectsBySemester = {
     "Machine Learning",
     "Project Work",
   ],
-  5: [
-    "Advanced Web Development",
-    "Big Data Analytics",
-    "DevOps",
-    "Elective I",
-    "Major Project",
-  ],
-  6: [
-    "Major Project",
-    "Seminar",
-    "Industrial Training",
-    "Viva Voce",
-  ],
+  
 };
 
 const updates = [
