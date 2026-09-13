@@ -169,7 +169,13 @@ function App() {
                   <Folder className="folder" size={43}/>
                   <span className="number">{i + 1}.</span>
                   <h3>{subject}</h3>
-                  <div className="view-notes"><FileText size={17}/> View Notes</div>
+                  <div className="view-notes"><FileText size={17}/> <a
+  href={`${import.meta.env.BASE_URL}notes/sem2/operating-system/OS-Unit-1.pdf`}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  View Notes
+</a></div>
                   <div className="round-arrow"><ChevronRight size={20}/></div>
                 </article>
               )) : (
