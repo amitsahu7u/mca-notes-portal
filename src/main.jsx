@@ -62,7 +62,6 @@ const subjectsBySemester = {
     "Machine Learning",
     "Project Work",
   ],
-  
 };
 
 const updates = [
@@ -265,7 +264,7 @@ function App() {
               <p>Select your semester to view subject-wise daily notes</p>
             </div>
             <div className="tabs">
-              {[1, 2, 3, 4, 5, 6].map((sem) => (
+              {[1, 2, 3, 4].map((sem) => (
                 <button
                   key={sem}
                   className={semester === sem ? "tab selected" : "tab"}
