@@ -162,20 +162,19 @@ function App() {
             <div className="subject-grid">
               {subjects.length ? subjects.map((subject, i) => (
                 <article
-                  className={`subject-card ${cardClasses[i % cardClasses.length]}`}
-                  key={subject}
-                  onClick={() => alert(`Opening notes for: ${subject}`)}
-                >
+              className={`subject-card ${cardClasses[i % cardClasses.length]}`}
+              key={subject}
+                 >
                   <Folder className="folder" size={43}/>
                   <span className="number">{i + 1}.</span>
                   <h3>{subject}</h3>
                   <div className="view-notes"><FileText size={17}/> <a
-  href={`${import.meta.env.BASE_URL}notes/sem2/operating-system/public/notes/sem2/operating-system/Programming in ANSI C (E Balagurusamy) (Z-Library).pdf`}
-  target="_blank"
-  rel="noopener noreferrer"
->
-  View Notes
-</a></div>
+                 href={`${import.meta.env.BASE_URL}notes/sem2/operating-system/Programming in ANSI C (E Balagurusamy) (Z-Library).pdf`}
+                 target="_blank"
+                 rel="noopener noreferrer"
+                   >
+               View Notes
+                 </a></div>
                   <div className="round-arrow"><ChevronRight size={20}/></div>
                 </article>
               )) : (
@@ -213,7 +212,10 @@ function App() {
       <footer id="about">
         <div className="container footer-wrap">
           <div className="footer-brand">
-            <img src="/assets/university-seal.png" alt="University seal"/>
+            <img
+            src={`${import.meta.env.BASE_URL}assets/university-seal.png`}
+            alt="University seal"
+            />
             <div>
               <strong>MCA Notes Portal</strong>
               <span>UNIVERSITY, BERHAMPUR, ODISHA</span>
