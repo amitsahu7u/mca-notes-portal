@@ -170,7 +170,7 @@ function App() {
                   <span className="number">{i + 1}.</span>
                   <h3>{subject}</h3>
                   <div className="view-notes"><FileText size={17}/> <a
-  href={`${import.meta.env.BASE_URL}notes/sem2/operating-system/OS-Unit-1.pdf`}
+  href={`${import.meta.env.BASE_URL}notes/sem2/operating-system/public/notes/sem2/operating-system/Programming in ANSI C (E Balagurusamy) (Z-Library).pdf`}
   target="_blank"
   rel="noopener noreferrer"
 >
