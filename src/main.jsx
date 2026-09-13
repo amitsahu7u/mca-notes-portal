@@ -1,10 +1,11 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "./firebase";
+import { auth, db } from "./firebase";
 import { AUTHORIZED_USERS } from "./authorizedUsers";
 import Login from "./Login";
 import UploadNotes from "./UploadNotes";
+import { collection, getDocs } from "firebase/firestore";
 
 import {
   BookOpen,
@@ -93,6 +94,7 @@ const cardClasses = [
 function App() {
   const [semester, setSemester] = useState(1);
   const [search, setSearch] = useState("");
+  const [notes, setNotes] = useState([]);
 
   const [currentUser, setCurrentUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
@@ -113,6 +115,26 @@ function App() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+  const loadNotes = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "notes"));
+
+      const loadedNotes = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setNotes(loadedNotes);
+      console.log("Loaded notes:", loadedNotes);
+    } catch (error) {
+      console.error("Error loading notes:", error);
+    }
+  };
+
+  loadNotes();
+}, []);
 
   const subjects = useMemo(() => {
     return subjectsBySemester[semester].filter((subject) =>
@@ -294,15 +316,36 @@ function App() {
                     <h3>{subject}</h3>
 
                     <div className="view-notes">
-                      <FileText size={17} />
-                      <a
-                        href={`${import.meta.env.BASE_URL}notes/sem2/operating-system/Programming in ANSI C (E Balagurusamy) (Z-Library).pdf`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View Notes
-                      </a>
-                    </div>
+               <FileText size={17} />
+
+             {notes.filter(
+            (note) =>
+              note.semester === String(semester) &&
+             note.subject === subject
+          ).length > 0 ? (
+        <div>
+        {notes
+        .filter(
+          (note) =>
+            note.semester === String(semester) &&
+            note.subject === subject
+        )
+        .map((note) => (
+          <div key={note.id} style={{ marginBottom: "6px" }}>
+            <a
+              href={note.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {note.title}
+            </a>
+          </div>
+        ))}
+    </div>
+  ) : (
+    <span>No Notes Yet</span>
+  )}
+</div>
 
                     <div className="round-arrow">
                       <ChevronRight size={20} />
