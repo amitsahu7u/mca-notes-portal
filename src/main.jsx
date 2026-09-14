@@ -1,5 +1,6 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import "./index.css";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "./firebase";
 import { AUTHORIZED_USERS } from "./authorizedUsers";
@@ -204,15 +205,21 @@ function App() {
 
             {currentUser ? (
               <>
-                <button onClick={() => setShowUpload(!showUpload)}>
-                  Upload Notes
-                </button>
+               <button
+               className="upload-notes-btn"
+               onClick={() => setShowUpload(!showUpload)}
+               >
+              📤 Upload Notes
+              </button>
                 <button onClick={handleLogout}>Logout</button>
               </>
             ) : (
-              <button onClick={() => setShowLogin(true)}>
-                Authorized Login
-              </button>
+              <button
+            className="authorized-login-btn"
+            onClick={() => setShowLogin(true)}
+            >
+           🔐 Authorized Login
+             </button>
             )}
           </div>
         </div>

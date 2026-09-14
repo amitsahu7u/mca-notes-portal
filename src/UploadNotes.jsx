@@ -1,7 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { auth, db } from "./firebase";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { CLOUDINARY_UPLOAD_URL } from "./cloudinary";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
+
+import {
+  CLOUDINARY_UPLOAD_URL,
+  CLOUDINARY_UPLOAD_PRESET,
+} from "./cloudinary";
 
 const semesters = {
   1: [
@@ -37,19 +49,7 @@ const semesters = {
     "Machine Learning",
     "Project Work",
   ],
-  5: [
-    "Advanced Web Development",
-    "Big Data Analytics",
-    "DevOps",
-    "Elective I",
-    "Major Project",
-  ],
-  6: [
-    "Major Project",
-    "Seminar",
-    "Industrial Training",
-    "Viva Voce",
-  ],
+
 };
 
 export default function UploadNotes() {
@@ -57,9 +57,57 @@ export default function UploadNotes() {
   const [subject, setSubject] = useState("");
   const [title, setTitle] = useState("");
   const [file, setFile] = useState(null);
+
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
 
+  const [notes, setNotes] = useState([]);
+  const [loadingNotes, setLoadingNotes] = useState(true);
+
+  const [search, setSearch] = useState("");
+  const [filterSemester, setFilterSemester] = useState("all");
+
+  const [editingId, setEditingId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState("");
+
+  // =========================
+  // LOAD NOTES
+  // =========================
+  const loadNotes = async () => {
+    try {
+      setLoadingNotes(true);
+
+      const snapshot = await getDocs(collection(db, "notes"));
+
+      const loadedNotes = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
+
+      loadedNotes.sort((a, b) => {
+        const aTime = a.uploadedAt?.seconds || 0;
+        const bTime = b.uploadedAt?.seconds || 0;
+
+        return bTime - aTime;
+      });
+
+      setNotes(loadedNotes);
+    } catch (error) {
+      console.error(error);
+      setMessage(`❌ Failed to load notes: ${error.message}`);
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
+
+  useEffect(() => {
+    loadNotes();
+  }, []);
+
+  // =========================
+  // UPLOAD
+  // =========================
   const handleUpload = async (e) => {
     e.preventDefault();
 
@@ -85,43 +133,76 @@ export default function UploadNotes() {
 
     try {
       setUploading(true);
+      setProgress(0);
       setMessage("");
 
-      // Upload PDF to Cloudinary
       const formData = new FormData();
+
       formData.append("file", file);
-      formData.append("upload_preset", "mca_notes_upload");
-
-      console.log("Cloudinary URL:", CLOUDINARY_UPLOAD_URL);
-      console.log("Cloudinary preset:", "mca_notes_upload");
-
-      const cloudinaryResponse = await fetch(CLOUDINARY_UPLOAD_URL, {
-        method: "POST",
-        body: formData,
-      });
-
-      const cloudinaryData = await cloudinaryResponse.json();
-
-      if (!cloudinaryResponse.ok) {
-      console.log("Cloudinary Status:", cloudinaryResponse.status);
-      console.log("Cloudinary Response:", cloudinaryData);
-      console.log(
-       "X-Cld-Error:",
-      cloudinaryResponse.headers.get("X-Cld-Error")
+      formData.append(
+        "upload_preset",
+        CLOUDINARY_UPLOAD_PRESET
       );
 
-  throw new Error(
-    cloudinaryData?.error?.message || "Cloudinary upload failed"
-  );
-}
+      const cloudinaryData = await new Promise(
+        (resolve, reject) => {
+          const xhr = new XMLHttpRequest();
 
-      // Save note information in Firestore
+          xhr.open("POST", CLOUDINARY_UPLOAD_URL);
+
+          xhr.upload.addEventListener(
+            "progress",
+            (event) => {
+              if (event.lengthComputable) {
+                setProgress(
+                  Math.round(
+                    (event.loaded / event.total) * 100
+                  )
+                );
+              }
+            }
+          );
+
+          xhr.onload = () => {
+            try {
+              const data = JSON.parse(xhr.responseText);
+
+              if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(data);
+              } else {
+                reject(
+                  new Error(
+                    data?.error?.message ||
+                      "Cloudinary upload failed"
+                  )
+                );
+              }
+            } catch {
+              reject(
+                new Error("Invalid Cloudinary response")
+              );
+            }
+          };
+
+          xhr.onerror = () => {
+            reject(
+              new Error("Network error during upload")
+            );
+          };
+
+          xhr.send(formData);
+        }
+      );
+
+      setProgress(100);
+
       await addDoc(collection(db, "notes"), {
-        title,
+        title: title.trim(),
         semester: String(semester),
         subject,
         fileUrl: cloudinaryData.secure_url,
         publicId: cloudinaryData.public_id,
+        fileSize: file.size,
         uploadedBy: auth.currentUser.email,
         uploadedAt: serverTimestamp(),
       });
@@ -130,81 +211,556 @@ export default function UploadNotes() {
       setSemester("");
       setSubject("");
       setFile(null);
-      document.getElementById("pdf-file").value = "";
+      setProgress(0);
 
-      setMessage("✅ Notes uploaded successfully!");
+      const fileInput =
+        document.getElementById("pdf-file");
+
+      if (fileInput) {
+        fileInput.value = "";
+      }
+
+      setMessage("Notes uploaded successfully!");
+
+      await loadNotes();
+
+      window.dispatchEvent(new Event("notes-updated"));
     } catch (error) {
       console.error(error);
-      setMessage(`❌ Upload failed: ${error.message}`);
+      setMessage(`Upload failed: ${error.message}`);
     } finally {
       setUploading(false);
     }
   };
 
+  // =========================
+  // DELETE
+  // =========================
+  const handleDelete = async (id, noteTitle) => {
+    const confirmed = window.confirm(
+      `Delete "${noteTitle}" from the notes list?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteDoc(doc(db, "notes", id));
+
+      setMessage("Note deleted successfully.");
+
+      await loadNotes();
+
+      window.dispatchEvent(new Event("notes-updated"));
+    } catch (error) {
+      console.error(error);
+      setMessage(`Delete failed: ${error.message}`);
+    }
+  };
+
+  // =========================
+  // EDIT
+  // =========================
+  const startEdit = (note) => {
+    setEditingId(note.id);
+    setEditingTitle(note.title);
+  };
+
+  const saveEdit = async (id) => {
+    if (!editingTitle.trim()) {
+      alert("Note title cannot be empty.");
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "notes", id), {
+        title: editingTitle.trim(),
+      });
+
+      setEditingId(null);
+      setEditingTitle("");
+
+      setMessage("Note title updated.");
+
+      await loadNotes();
+
+      window.dispatchEvent(new Event("notes-updated"));
+    } catch (error) {
+      console.error(error);
+      setMessage(`Update failed: ${error.message}`);
+    }
+  };
+
+  // =========================
+  // FILE SIZE
+  // =========================
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "Size unavailable";
+
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  // =========================
+  // FILTER
+  // =========================
+  const filteredNotes = notes.filter((note) => {
+    const searchText = search.toLowerCase();
+
+    const matchesSearch =
+      note.title?.toLowerCase().includes(searchText) ||
+      note.subject?.toLowerCase().includes(searchText);
+
+    const matchesSemester =
+      filterSemester === "all" ||
+      note.semester === filterSemester;
+
+    return matchesSearch && matchesSemester;
+  });
+
   return (
-    <div className="upload-notes-box">
-      <h2>Upload Notes</h2>
+    <div className="admin-dashboard">
 
-      <form onSubmit={handleUpload}>
-        <label>Semester</label>
+      {/* =========================
+          HEADER
+      ========================= */}
+      <div className="admin-header">
+        <div>
+          <div className="admin-title">
+            <span className="admin-title-icon">📚</span>
 
-        <select
-          value={semester}
-          onChange={(e) => {
-            setSemester(e.target.value);
-            setSubject("");
-          }}
+            <div>
+              <h2>Admin Dashboard</h2>
+
+              <p>
+                Manage MCA notes and study materials
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="refresh-btn"
+          onClick={loadNotes}
+          disabled={loadingNotes}
         >
-          <option value="">Select Semester</option>
+          ↻ Refresh
+        </button>
+      </div>
 
-          {Object.keys(semesters).map((sem) => (
-            <option key={sem} value={sem}>
-              Semester {sem}
+      {/* =========================
+          STATS
+      ========================= */}
+      <div className="admin-stats">
+
+        <div className="stat-card">
+          <div className="stat-icon purple">
+            📄
+          </div>
+
+          <div>
+            <span>Total Notes</span>
+            <strong>{notes.length}</strong>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon blue">
+            🎓
+          </div>
+
+          <div>
+            <span>Semesters</span>
+            <strong>4</strong>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon green">
+            👤
+          </div>
+
+          <div>
+            <span>Admin</span>
+            <strong>Authorized</strong>
+          </div>
+        </div>
+
+      </div>
+
+      {/* =========================
+          UPLOAD CARD
+      ========================= */}
+      <section className="admin-card upload-card">
+
+        <div className="section-heading">
+          <div className="section-icon">
+            ↑
+          </div>
+
+          <div>
+            <h3>Upload New Notes</h3>
+            <p>
+              Add PDF study material for students
+            </p>
+          </div>
+        </div>
+
+        <form
+          className="admin-upload-form"
+          onSubmit={handleUpload}
+        >
+
+          <div className="form-grid">
+
+            <div className="form-group">
+              <label>Semester</label>
+
+              <select
+                value={semester}
+                onChange={(e) => {
+                  setSemester(e.target.value);
+                  setSubject("");
+                }}
+                disabled={uploading}
+              >
+                <option value="">
+                  Select Semester
+                </option>
+
+                {Object.keys(semesters).map((sem) => (
+                  <option key={sem} value={sem}>
+                    Semester {sem}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Subject</label>
+
+              <select
+                value={subject}
+                onChange={(e) =>
+                  setSubject(e.target.value)
+                }
+                disabled={!semester || uploading}
+              >
+                <option value="">
+                  Select Subject
+                </option>
+
+                {semester &&
+                  semesters[semester].map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+          </div>
+
+          <div className="form-group">
+            <label>Note Title</label>
+
+            <input
+              type="text"
+              placeholder="Example: Unit 1 Notes"
+              value={title}
+              onChange={(e) =>
+                setTitle(e.target.value)
+              }
+              disabled={uploading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>PDF File</label>
+
+            <label
+              htmlFor="pdf-file"
+              className="file-upload-box"
+            >
+              <span className="file-upload-icon">
+                📄
+              </span>
+
+              <span>
+                {file
+                  ? file.name
+                  : "Choose PDF file"}
+              </span>
+
+              <small>
+                {file
+                  ? formatFileSize(file.size)
+                  : "Maximum file size 10 MB"}
+              </small>
+            </label>
+
+            <input
+              id="pdf-file"
+              type="file"
+              accept="application/pdf,.pdf"
+              disabled={uploading}
+              onChange={(e) => {
+                setFile(
+                  e.target.files[0] || null
+                );
+              }}
+              className="hidden-file-input"
+            />
+          </div>
+
+          {/* Progress */}
+          {uploading && (
+            <div className="upload-progress">
+
+              <div className="progress-info">
+                <span>Uploading PDF...</span>
+                <strong>{progress}%</strong>
+              </div>
+
+              <div className="progress-track">
+                <div
+                  className="progress-fill"
+                  style={{
+                    width: `${progress}%`,
+                  }}
+                />
+              </div>
+
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="upload-main-btn"
+            disabled={uploading}
+          >
+            {uploading
+              ? `Uploading ${progress}%`
+              : "↑ Upload Notes"}
+          </button>
+
+        </form>
+      </section>
+
+      {/* =========================
+          MESSAGE
+      ========================= */}
+      {message && (
+        <div className="admin-message">
+          <span>✓</span>
+          {message}
+        </div>
+      )}
+
+      {/* =========================
+          NOTES SECTION
+      ========================= */}
+      <section className="admin-card notes-card">
+
+        <div className="notes-header">
+
+          <div className="section-heading">
+            <div className="section-icon">
+              ☷
+            </div>
+
+            <div>
+              <h3>
+                Uploaded Notes
+                <span className="notes-count">
+                  {filteredNotes.length}
+                </span>
+              </h3>
+
+              <p>
+                View and manage uploaded study materials
+              </p>
+            </div>
+          </div>
+
+          <select
+            className="semester-filter"
+            value={filterSemester}
+            onChange={(e) =>
+              setFilterSemester(e.target.value)
+            }
+          >
+            <option value="all">
+              All Semesters
             </option>
-          ))}
-        </select>
 
-        <label>Subject</label>
-
-        <select
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          disabled={!semester}
-        >
-          <option value="">Select Subject</option>
-
-          {semester &&
-            semesters[semester].map((item) => (
-              <option key={item} value={item}>
-                {item}
+            {Object.keys(semesters).map((sem) => (
+              <option key={sem} value={sem}>
+                Semester {sem}
               </option>
             ))}
-        </select>
+          </select>
 
-        <label>Note Title</label>
+        </div>
 
-        <input
-          type="text"
-          placeholder="Example: Unit 1 Notes"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+        {/* Search */}
+        <div className="admin-search">
+          <span>⌕</span>
 
-        <label>PDF File</label>
+          <input
+            type="text"
+            placeholder="Search notes or subjects..."
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+          />
+        </div>
 
-        <input
-          id="pdf-file"
-          type="file"
-          accept="application/pdf,.pdf"
-          onChange={(e) => setFile(e.target.files[0])}
-        />
+        {/* Loading */}
+        {loadingNotes && (
+          <div className="empty-notes">
+            Loading notes...
+          </div>
+        )}
 
-        <button type="submit" disabled={uploading}>
-          {uploading ? "Uploading..." : "Upload Notes"}
-        </button>
-      </form>
+        {/* Empty */}
+        {!loadingNotes &&
+          filteredNotes.length === 0 && (
+            <div className="empty-notes">
+              <div>📭</div>
+              <strong>No notes found</strong>
+              <span>
+                Upload a PDF or change your search.
+              </span>
+            </div>
+          )}
 
-      {message && <p>{message}</p>}
+        {/* Notes */}
+        {!loadingNotes &&
+          filteredNotes.map((note) => (
+            <div
+              className="note-admin-item"
+              key={note.id}
+            >
+
+              <div className="note-main">
+
+                <div className="note-subject">
+                  Semester {note.semester}
+                  <span>•</span>
+                  {note.subject}
+                </div>
+
+                {editingId === note.id ? (
+                  <div className="edit-row">
+
+                    <input
+                      type="text"
+                      value={editingTitle}
+                      onChange={(e) =>
+                        setEditingTitle(
+                          e.target.value
+                        )
+                      }
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        saveEdit(note.id)
+                      }
+                      className="save-btn"
+                    >
+                      Save
+                    </button>
+
+                    <button
+                      type="button"
+                      className="cancel-btn"
+                      onClick={() => {
+                        setEditingId(null);
+                        setEditingTitle("");
+                      }}
+                    >
+                      Cancel
+                    </button>
+
+                  </div>
+                ) : (
+                  <h4>
+                    <span className="pdf-icon">
+                      PDF
+                    </span>
+
+                    {note.title}
+                  </h4>
+                )}
+
+                <div className="note-meta">
+
+                  <span>
+                    💾{" "}
+                    {formatFileSize(
+                      note.fileSize
+                    )}
+                  </span>
+
+                  <span>
+                    👤{" "}
+                    {note.uploadedBy ||
+                      "Authorized Admin"}
+                  </span>
+
+                </div>
+
+              </div>
+
+              {editingId !== note.id && (
+                <div className="note-actions">
+
+                  <a
+                    href={note.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="view-btn"
+                  >
+                    👁 View PDF
+                  </a>
+
+                  <button
+                    type="button"
+                    className="edit-btn"
+                    onClick={() =>
+                      startEdit(note)
+                    }
+                  >
+                    ✎ Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    className="delete-btn"
+                    onClick={() =>
+                      handleDelete(
+                        note.id,
+                        note.title
+                      )
+                    }
+                  >
+                    🗑 Delete
+                  </button>
+
+                </div>
+              )}
+
+            </div>
+          ))}
+
+      </section>
     </div>
   );
 }
