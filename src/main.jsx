@@ -201,13 +201,36 @@ function App() {
             <a href="#about" onClick={() => setMobileOpen(false)}>
               <Info size={19} /> About
             </a>
-            <button
-              type="button"
-              className="authorized-login-btn mobile-login-btn"
-              onClick={openLogin}
-            >
-          🔐 Authorized Login
-        </button>
+            {currentUser ? (
+              <>
+                <button
+                  type="button"
+                  className="upload-notes-btn mobile-nav-action"
+                  onClick={() => {
+                    setShowUpload(true);
+                    setMobileOpen(false);
+                  }}
+                >
+                  📤 Upload Notes
+                </button>
+
+                <button
+                  type="button"
+                  className="logout-btn mobile-nav-action"
+                  onClick={handleLogout}
+                >
+                  🚪 Logout
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="authorized-login-btn mobile-nav-action"
+                onClick={openLogin}
+              >
+                🔐 Authorized Login
+              </button>
+            )}
           </nav>
 
           <div className="nav-actions">
@@ -283,13 +306,34 @@ function App() {
     </div>,
     document.body
   )}
-      <main>
-        {currentUser && showUpload && (
-          <section className="container" style={{ paddingTop: "24px" }}>
-            <UploadNotes />
-          </section>
-        )}
 
+      {currentUser &&
+        showUpload &&
+        createPortal(
+          <div
+            className="upload-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Upload Notes"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowUpload(false);
+            }}
+          >
+            <div className="upload-modal-card">
+              <button
+                type="button"
+                className="upload-modal-close"
+                onClick={() => setShowUpload(false)}
+                aria-label="Close upload notes"
+              >
+                <X />
+              </button>
+              <UploadNotes />
+            </div>
+          </div>,
+          document.body
+        )}
+      <main>
         <section className="hero" id="home">
           <div className="hero-overlay" />
           <div className="container hero-content">
