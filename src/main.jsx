@@ -1,5 +1,6 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { createPortal } from "react-dom";
 import "./index.css";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "./firebase";
@@ -143,9 +144,16 @@ function App() {
       await signOut(auth);
       setCurrentUser(null);
       setShowUpload(false);
+      setMobileOpen(false);
     } catch (error) {
       console.error("Logout error:", error);
     }
+  };
+
+  const openLogin = () => {
+    setMobileOpen(false);
+    setShowUpload(false);
+    setShowLogin(true);
   };
 
   return (
@@ -171,14 +179,16 @@ function App() {
           </a>
 
           <button
+            type="button"
             className="mobile-menu"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Menu"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X /> : <Menu />}
           </button>
 
-          <nav className={mobileOpen ? "main-nav open" : "main-nav"}>
+          <nav className={`main-nav ${mobileOpen ? "open" : ""}`}>
             <a className="active" href="#home" onClick={() => setMobileOpen(false)}>
               <GraduationCap size={19} /> Home
             </a>
@@ -191,6 +201,13 @@ function App() {
             <a href="#about" onClick={() => setMobileOpen(false)}>
               <Info size={19} /> About
             </a>
+            <button
+              type="button"
+              className="authorized-login-btn mobile-login-btn"
+              onClick={openLogin}
+            >
+          🔐 Authorized Login
+        </button>
           </nav>
 
           <div className="nav-actions">
@@ -206,25 +223,66 @@ function App() {
             {currentUser ? (
               <>
                <button
-               className="upload-notes-btn"
-               onClick={() => setShowUpload(!showUpload)}
-               >
+                  type="button"
+                  className="upload-notes-btn"
+                  onClick={() => setShowUpload(!showUpload)}
+                >
               📤 Upload Notes
               </button>
-                <button onClick={handleLogout}>Logout</button>
+                <button
+                  type="button"
+                  className="logout-btn"
+                  onClick={handleLogout}
+                >
+                  🚪 Logout
+                </button>
               </>
             ) : (
               <button
-            className="authorized-login-btn"
-            onClick={() => setShowLogin(true)}
-            >
+                type="button"
+                className="authorized-login-btn"
+                onClick={openLogin}
+              >
            🔐 Authorized Login
              </button>
             )}
           </div>
         </div>
       </header>
+        {showLogin &&
+  !currentUser &&
+  createPortal(
+    <div
+      className="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Authorized Login"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          setShowLogin(false);
+        }
+      }}
+    >
+      <div className="modal-card">
+        <button
+          type="button"
+          className="close"
+          onClick={() => setShowLogin(false)}
+          aria-label="Close login"
+        >
+          <X />
+        </button>
 
+        <Login
+          onLogin={(user) => {
+            setCurrentUser(user);
+            setShowLogin(false);
+          }}
+        />
+      </div>
+    </div>,
+    document.body
+  )}
       <main>
         {currentUser && showUpload && (
           <section className="container" style={{ paddingTop: "24px" }}>
@@ -420,31 +478,6 @@ function App() {
         </div>
       </footer>
 
-      {showLogin && !currentUser && (
-        <div
-          className="modal"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowLogin(false);
-          }}
-        >
-          <div className="modal-card">
-            <button
-              className="close"
-              onClick={() => setShowLogin(false)}
-              aria-label="Close login"
-            >
-              <X />
-            </button>
-
-            <Login
-              onLogin={(user) => {
-                setCurrentUser(user);
-                setShowLogin(false);
-              }}
-            />
-          </div>
-        </div>
-      )}
     </>
   );
 }
