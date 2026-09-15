@@ -7,7 +7,7 @@ import { auth, db } from "./firebase";
 import { AUTHORIZED_USERS } from "./authorizedUsers";
 import Login from "./Login";
 import UploadNotes from "./UploadNotes";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 
 import {
   BookOpen,
@@ -67,10 +67,6 @@ const subjectsBySemester = {
   ],
 };
 
-const updates = [
-  ["13 Sep 2026", "Welcome to MCA Notes Portal!"],
-];
-
 const cardClasses = [
   "blue",
   "green",
@@ -122,24 +118,24 @@ function App() {
   }, []);
 
   useEffect(() => {
-  const loadNotes = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "notes"));
+    const unsubscribe = onSnapshot(
+      collection(db, "notes"),
+      (snapshot) => {
+        const loadedNotes = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-      const loadedNotes = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+        setNotes(loadedNotes);
+        console.log("Realtime notes:", loadedNotes);
+      },
+      (error) => {
+        console.error("Error listening to notes:", error);
+      }
+    );
 
-      setNotes(loadedNotes);
-      console.log("Loaded notes:", loadedNotes);
-    } catch (error) {
-      console.error("Error loading notes:", error);
-    }
-  };
-
-  loadNotes();
-}, []);
+    return () => unsubscribe();
+  }, []);
 
   const subjects = useMemo(() => {
     return subjectsBySemester[semester].filter((subject) =>
@@ -192,6 +188,52 @@ function App() {
           note.subject === selectedSubject
       )
     : [];
+
+
+  const latestUpdates = useMemo(() => {
+    const getTime = (value) => {
+      if (!value) return 0;
+
+      if (typeof value?.toDate === "function") {
+        return value.toDate().getTime();
+      }
+
+      const time = new Date(value).getTime();
+      return Number.isNaN(time) ? 0 : time;
+    };
+
+    const formatDate = (value) => {
+      if (!value) return "New";
+
+      try {
+        const date =
+          typeof value?.toDate === "function"
+            ? value.toDate()
+            : new Date(value);
+
+        if (Number.isNaN(date.getTime())) return "New";
+
+        return date.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+      } catch {
+        return "New";
+      }
+    };
+
+    return [...notes]
+      .sort(
+        (a, b) => getTime(b.uploadedAt) - getTime(a.uploadedAt)
+      )
+      .slice(0, 5)
+      .map((note) => ({
+        date: formatDate(note.uploadedAt),
+        text: `New Note: ${note.title || "New Study Material"}`,
+        subject: note.subject || "",
+      }));
+  }, [notes]);
 
 
   return (
@@ -605,11 +647,25 @@ function App() {
                   <Megaphone size={20} /> Latest Updates <a href="#updates">View All</a>
                 </div>
                 <div className="updates" id="updates">
-                  {updates.map(([date, text]) => (
-                    <div className="update" key={date + text}>
-                      <time>{date}</time><b>{text}</b>
+                  {latestUpdates.length > 0 ? (
+                    latestUpdates.map((update, index) => (
+                      <div
+                        className="update"
+                        key={`${update.date}-${update.text}-${index}`}
+                      >
+                        <time>{update.date}</time>
+                        <div>
+                          <b>{update.text}</b>
+                          {update.subject && <small>{update.subject}</small>}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="update">
+                      <time>—</time>
+                      <b>No new updates yet</b>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
