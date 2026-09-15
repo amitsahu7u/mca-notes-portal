@@ -98,7 +98,7 @@ function App() {
 
     const timer = setTimeout(() => {
       setShowWelcomeCard(false);
-    }, 1000);
+    }, 1600);
 
     return () => clearTimeout(timer);
   }, [showWelcomeCard]);
