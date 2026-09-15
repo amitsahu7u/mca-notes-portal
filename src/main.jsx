@@ -227,7 +227,6 @@ function App() {
       .sort(
         (a, b) => getTime(b.uploadedAt) - getTime(a.uploadedAt)
       )
-      .slice(0, 5)
       .map((note) => ({
         date: formatDate(note.uploadedAt),
         text: `New Note: ${note.title || "New Study Material"}`,
@@ -644,11 +643,21 @@ function App() {
             <aside className="sidebar">
               <div className="panel">
                 <div className="panel-title">
-                  <Megaphone size={20} /> Latest Updates <a href="#updates">View All</a>
+                  <Megaphone size={20} />
+                  Latest Updates
+
+                  {latestUpdates.length > 0 && (
+                    <a
+                      href={`${import.meta.env.BASE_URL}updates.html`}
+                    >
+                      View All
+                    </a>
+                  )}
                 </div>
+
                 <div className="updates" id="updates">
                   {latestUpdates.length > 0 ? (
-                    latestUpdates.map((update, index) => (
+                    latestUpdates.slice(0, 5).map((update, index) => (
                       <div
                         className="update"
                         key={`${update.date}-${update.text}-${index}`}
