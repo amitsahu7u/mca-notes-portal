@@ -92,6 +92,19 @@ function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showWelcomeCard, setShowWelcomeCard] = useState(true);
 
+  // Automatically enter the website after 3 seconds.
+  useEffect(() => {
+    if (!showWelcomeCard) return;
+
+    const timer = setTimeout(() => {
+      setShowWelcomeCard(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [showWelcomeCard]);
+
+
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       const email = user?.email?.trim().toLowerCase();
@@ -163,28 +176,25 @@ function App() {
   return (
     <>
       {showWelcomeCard && (
-        <div className="welcome-screen" role="dialog" aria-modal="true">
+        <div
+          className="welcome-screen"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Welcome to MCA Notes Portal"
+          onClick={enterWebsite}
+        >
           <button
             type="button"
             className="welcome-card"
             onClick={enterWebsite}
             aria-label="Click to enter MCA Notes Portal"
           >
-            <div className="welcome-photo-wrap">
-              <img
-                src={`${import.meta.env.BASE_URL}assets/amit-sahu-developer-card.png`}
-                alt="Amit Sahu"
-                className="welcome-photo"
-              />
-            </div>
-
-            <div className="welcome-content">
-              <span className="welcome-mini">WELCOME TO</span>
-              <strong>MCA Notes Portal</strong>
-              <span className="welcome-sub">University, Berhampur, Odisha</span>
-              <span className="welcome-click">✦ CLICK TO ENTER ✦</span>
-            </div>
-            <span className="welcome-shine" aria-hidden="true" />
+            <img
+              src={`${import.meta.env.BASE_URL}assets/amit-sahu-developer-card.png`}
+              alt="Built by Amit Sahu — MCA Student Developer"
+              className="welcome-card-image"
+            />
+            <span className="welcome-enter">CLICK TO ENTER</span>
           </button>
         </div>
       )}
