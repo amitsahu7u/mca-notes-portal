@@ -627,9 +627,16 @@ function App() {
                   <a href="#">
                     <FileText size={17} /><span>Previous Year Papers</span><ChevronRight size={17} />
                   </a>
-                  <a href="#">
-                    <Layers size={17} /><span>Syllabus</span><ChevronRight size={17} />
-                  </a>
+                  <a
+                   href={`${import.meta.env.BASE_URL}notes/syllabus.pdf`}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="Open MCA Syllabus PDF"
+                  >
+               <Layers size={17} />
+              <span>Syllabus</span>
+             <ChevronRight size={17} />
+              </a>
                   <a href="#contact">
                     <LinkIcon size={17} /><span>Contact / Feedback</span><ChevronRight size={17} />
                   </a>
