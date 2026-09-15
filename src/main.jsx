@@ -91,6 +91,7 @@ function App() {
   const [showUpload, setShowUpload] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showWelcomeCard, setShowWelcomeCard] = useState(true);
+  const [selectedSubject, setSelectedSubject] = useState(null);
 
   // Automatically enter the website after 3 seconds.
   useEffect(() => {
@@ -98,7 +99,7 @@ function App() {
 
     const timer = setTimeout(() => {
       setShowWelcomeCard(false);
-    }, 2000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [showWelcomeCard]);
@@ -172,6 +173,26 @@ function App() {
   };
 
   const enterWebsite = () => setShowWelcomeCard(false);
+  const openSubjectPage = (subject) => {
+    setSelectedSubject(subject);
+    setMobileOpen(false);
+    setShowUpload(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const closeSubjectPage = () => {
+    setSelectedSubject(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const selectedNotes = selectedSubject
+    ? notes.filter(
+        (note) =>
+          note.semester === String(semester) &&
+          note.subject === selectedSubject
+      )
+    : [];
+
 
   return (
     <>
@@ -196,6 +217,99 @@ function App() {
             />
             <span className="welcome-enter">CLICK TO ENTER</span>
           </button>
+        </div>
+      )}
+
+      {selectedSubject && (
+        <div className="subject-page-overlay">
+          <div className="subject-page">
+            <header className="subject-page-header">
+              <div className="container subject-page-nav">
+                <button
+                  type="button"
+                  className="back-subject-btn"
+                  onClick={closeSubjectPage}
+                >
+                  <ChevronRight size={20} className="back-icon" />
+                  Back to Subjects
+                </button>
+
+                <div className="subject-page-brand">
+                  <img
+                    src={`${import.meta.env.BASE_URL}assets/university-seal.png`}
+                    alt="University seal"
+                  />
+                  <div>
+                    <strong>KUU MCA Notes Portal</strong>
+                    <span>UNIVERSITY, BERHAMPUR, ODISHA</span>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            <main className="subject-page-main">
+              <div className="container">
+                <div className="subject-page-title">
+                  <div className="subject-page-icon">
+                    <Folder size={34} />
+                  </div>
+                  <div>
+                    <span>SEMESTER {semester}</span>
+                    <h1>{selectedSubject}</h1>
+                    <p>All notes and study material for this subject</p>
+                  </div>
+                </div>
+
+                <div className="subject-page-toolbar">
+                  <div>
+                    <strong>{selectedNotes.length}</strong>
+                    <span>
+                      {selectedNotes.length === 1 ? " Note" : " Notes"} Available
+                    </span>
+                  </div>
+
+                  <button type="button" onClick={closeSubjectPage}>
+                    <ChevronRight size={17} className="back-icon" />
+                    All Subjects
+                  </button>
+                </div>
+
+                {selectedNotes.length > 0 ? (
+                  <div className="all-notes-grid">
+                    {selectedNotes.map((note, index) => (
+                      <a
+                        key={note.id}
+                        href={note.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="full-note-card"
+                      >
+                        <div className="note-file-icon">
+                          <FileText size={26} />
+                        </div>
+
+                        <div className="full-note-info">
+                          <span className="note-index">
+                            NOTE {String(index + 1).padStart(2, "0")}
+                          </span>
+                          <strong>{note.title}</strong>
+                          <small>PDF • Click to open</small>
+                        </div>
+
+                        <ChevronRight size={21} />
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="subject-empty-state">
+                    <FileText size={44} />
+                    <h2>No Notes Available Yet</h2>
+                    <p>Notes for this subject will appear here when uploaded.</p>
+                  </div>
+                )}
+              </div>
+            </main>
+          </div>
         </div>
       )}
 
@@ -447,42 +561,31 @@ function App() {
                   <article
                     className={`subject-card ${cardClasses[i % cardClasses.length]}`}
                     key={subject}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openSubjectPage(subject)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openSubjectPage(subject);
+                      }
+                    }}
                   >
                     <Folder className="folder" size={43} />
                     <span className="number"> {i + 1}.</span>
                     <h3>{subject}</h3>
 
                     <div className="view-notes">
-               <FileText size={17} />
-
-             {notes.filter(
-            (note) =>
-              note.semester === String(semester) &&
-             note.subject === subject
-          ).length > 0 ? (
-        <div>
-        {notes
-        .filter(
-          (note) =>
-            note.semester === String(semester) &&
-            note.subject === subject
-        )
-        .map((note) => (
-          <div key={note.id} style={{ marginBottom: "6px" }}>
-            <a
-              href={note.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {note.title}
-            </a>
-          </div>
-        ))}
-    </div>
-  ) : (
-    <span>No Notes Yet</span>
-  )}
-</div>
+                      <FileText size={17} />
+                      <span>
+                        {notes.filter(
+                          (note) =>
+                            note.semester === String(semester) &&
+                            note.subject === subject
+                        ).length}{" "}
+                        Notes • Click to View
+                      </span>
+                    </div>
 
                     <div className="round-arrow">
                       <ChevronRight size={20} />
