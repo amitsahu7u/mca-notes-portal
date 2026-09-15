@@ -50,19 +50,20 @@ const subjectsBySemester = {
     "Java Lab",
   ],
   3: [
+    "Compiler Design",
+    "Artificial Intelligence  and  Machine Learning",
     "Software Engineering",
-    "Computer Graphics",
-    "Advanced DBMS",
-    "Java Programming",
-    "Data Mining",
-    "Java Lab",
+    "Internet of Things(IOT)",
+    "Elective I Cryptography & network security Digital Image Processing(DIP) Big data Analytics",
+    "Python Lab",
+    "Web Technology Lab ",
+    "MINI PROJECT",
   ],
   4: [
-    "Cloud Computing",
-    "Artificial Intelligence",
-    "Cyber Security",
-    "Machine Learning",
-    "Project Work",
+    "Data Science & Analytics",
+    "Software Project Management",
+    "Elective II Cloud Computing Soft Computing Social Network and Analysis",
+    "MAJOR PROJECT",
   ],
 };
 
@@ -89,6 +90,7 @@ function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showWelcomeCard, setShowWelcomeCard] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -156,8 +158,37 @@ function App() {
     setShowLogin(true);
   };
 
+  const enterWebsite = () => setShowWelcomeCard(false);
+
   return (
     <>
+      {showWelcomeCard && (
+        <div className="welcome-screen" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            className="welcome-card"
+            onClick={enterWebsite}
+            aria-label="Click to enter MCA Notes Portal"
+          >
+            <div className="welcome-photo-wrap">
+              <img
+                src={`${import.meta.env.BASE_URL}assets/amit-sahu-developer-card.png`}
+                alt="Amit Sahu"
+                className="welcome-photo"
+              />
+            </div>
+
+            <div className="welcome-content">
+              <span className="welcome-mini">WELCOME TO</span>
+              <strong>MCA Notes Portal</strong>
+              <span className="welcome-sub">University, Berhampur, Odisha</span>
+              <span className="welcome-click">✦ CLICK TO ENTER ✦</span>
+            </div>
+            <span className="welcome-shine" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
       <header className="header">
         <div className="container nav">
           <a className="brand" href="#home">
@@ -408,7 +439,7 @@ function App() {
                     key={subject}
                   >
                     <Folder className="folder" size={43} />
-                    <span className="number">{i + 1}.</span>
+                    <span className="number"> {i + 1}.</span>
                     <h3>{subject}</h3>
 
                     <div className="view-notes">
@@ -515,12 +546,32 @@ function App() {
             <div className="tiny-line" />
           </div>
 
+          <div className="developer-card">
+            <div className="developer-photo">
+              <img
+                src={`${import.meta.env.BASE_URL}assets/amit-sahu-developer-card.png`}
+                alt="Amit Sahu"
+              />
+            </div>
+            <div className="developer-details">
+              <span className="developer-label">BUILT BY</span>
+              <strong>Amit Sahu</strong>
+              <span className="developer-role">MCA Student • Developer</span>
+              <div className="developer-socials">
+                <a href="#" aria-label="LinkedIn">in</a>
+                <a href="#" aria-label="GitHub">GH</a>
+                <a href="#" aria-label="Instagram">IG</a>
+              </div>
+            </div>
+          </div>
+
           <div className="social">
             <div><span>Instagram</span><span>Instagram</span><Send /></div>
             <small>© 2026 MCA Notes Portal. All rights reserved.</small>
           </div>
         </div>
       </footer>
+
 
     </>
   );
