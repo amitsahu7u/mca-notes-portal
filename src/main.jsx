@@ -1,7 +1,6 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { createPortal } from "react-dom";
-import "./index.css";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "./firebase";
 import { AUTHORIZED_USERS } from "./authorizedUsers";
@@ -26,9 +25,27 @@ import {
   Users,
   BarChart3,
   Send,
+  Code2,
+  Database,
+  Network,
+  Calculator,
+  Languages,
+  Terminal,
+  HardDrive,
+  GitBranch,
+  Binary,
+  Cpu,
+  Coffee,
+  Brain,
+  Settings2,
+  Wifi,
+  Shield,
+  Globe2,
+  Boxes,
+  Cloud,
 } from "lucide-react";
 
-import "./styles.css";
+import "./style.css";
 
 const subjectsBySemester = {
   1: [
@@ -77,6 +94,71 @@ const cardClasses = [
   "pink",
 ];
 
+const subjectIcons = {
+  "C Programming and Data Structure": Code2,
+  "Database Management System": Database,
+  "Data Communication and Computer Networks": Network,
+  "Mathematical Foundation of Computer Applications": Calculator,
+  "Communicative English": Languages,
+  "Programming in C & Data Structure Lab": Terminal,
+  "Oracle Lab": Database,
+
+  "Operating System": HardDrive,
+  "Theory of Computation": GitBranch,
+  "Design and Analysis of Algorithms": Binary,
+  "Computer Organization & Architecture": Cpu,
+  "Object Oriented Programming Using JAVA": Coffee,
+  "Linux Lab": Terminal,
+  "Java Lab": Coffee,
+
+  "Compiler Design": Code2,
+  "Artificial Intelligence  and  Machine Learning": Brain,
+  "Software Engineering": Settings2,
+  "Internet of Things(IOT)": Wifi,
+  "Elective I Cryptography & network security Digital Image Processing(DIP) Big data Analytics": Shield,
+  "Python Lab": Code2,
+  "Web Technology Lab ": Globe2,
+  "MINI PROJECT": Boxes,
+
+  "Data Science & Analytics": BarChart3,
+  "Software Project Management": Settings2,
+  "Elective II Cloud Computing Soft Computing Social Network and Analysis": Cloud,
+  "MAJOR PROJECT": Boxes,
+}
+
+const subjectThemeClasses = {
+  "C Programming and Data Structure": "theme-c",
+  "Database Management System": "theme-dbms",
+  "Data Communication and Computer Networks": "theme-network",
+  "Mathematical Foundation of Computer Applications": "theme-math",
+  "Communicative English": "theme-english",
+  "Programming in C & Data Structure Lab": "theme-c-lab",
+  "Oracle Lab": "theme-oracle",
+
+  "Operating System": "theme-os",
+  "Theory of Computation": "theme-toc",
+  "Design and Analysis of Algorithms": "theme-daa",
+  "Computer Organization & Architecture": "theme-coa",
+  "Object Oriented Programming Using JAVA": "theme-java",
+  "Linux Lab": "theme-linux",
+  "Java Lab": "theme-java-lab",
+
+  "Compiler Design": "theme-compiler",
+  "Artificial Intelligence  and  Machine Learning": "theme-ai",
+  "Software Engineering": "theme-software",
+  "Internet of Things(IOT)": "theme-iot",
+  "Elective I Cryptography & network security Digital Image Processing(DIP) Big data Analytics": "theme-security",
+  "Python Lab": "theme-python",
+  "Web Technology Lab ": "theme-web",
+  "MINI PROJECT": "theme-project",
+
+  "Data Science & Analytics": "theme-data",
+  "Software Project Management": "theme-management",
+  "Elective II Cloud Computing Soft Computing Social Network and Analysis": "theme-cloud",
+  "MAJOR PROJECT": "theme-major",
+};
+;
+
 function App() {
   const [semester, setSemester] = useState(1);
   const [search, setSearch] = useState("");
@@ -95,7 +177,7 @@ function App() {
 
     const timer = setTimeout(() => {
       setShowWelcomeCard(false);
-    }, 1400);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [showWelcomeCard]);
@@ -600,7 +682,7 @@ function App() {
               {subjects.length ? (
                 subjects.map((subject, i) => (
                   <article
-                    className={`subject-card ${cardClasses[i % cardClasses.length]}`}
+                    className={`subject-card ${subjectThemeClasses[subject] || "theme-default"}`}
                     key={subject}
                     role="button"
                     tabIndex={0}
@@ -612,7 +694,29 @@ function App() {
                       }
                     }}
                   >
-                    <Folder className="folder" size={43} />
+                    <div className="subject-bg-art" aria-hidden="true">
+                      <span className="art-symbol art-symbol-1" />
+                      <span className="art-symbol art-symbol-2" />
+                      <span className="art-symbol art-symbol-3" />
+                      <span className="art-orbit orbit-1" />
+                      <span className="art-orbit orbit-2" />
+                      <span className="art-glow" />
+                    </div>
+
+                    <div className={`subject-icon-3d icon-${cardClasses[i % cardClasses.length]}`}>
+                      {(() => {
+                        const SubjectIcon = subjectIcons[subject] || Folder;
+
+                        return (
+                          <SubjectIcon
+                            className="subject-icon-svg"
+                            size={31}
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          />
+                        );
+                      })()}
+                    </div>
                     <span className="number"> {i + 1}.</span>
                     <h3>{subject}</h3>
 
@@ -751,7 +855,7 @@ function App() {
           </div>
 
           <div className="social">
-            <div><span>Instagram</span><Send /></div>
+            <div><span>Instagram</span><span>Instagram</span><Send /></div>
             <small>© 2026 MCA Notes Portal. All rights reserved.</small>
           </div>
         </div>
