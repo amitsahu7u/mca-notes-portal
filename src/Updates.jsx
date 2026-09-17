@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { ArrowLeft, Megaphone, FileText } from "lucide-react";
 import { db } from "./firebase";
-import "./styles.css";
+import "./style.css";
 
 export default function Updates() {
   const [notes, setNotes] = useState([]);
