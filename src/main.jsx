@@ -751,7 +751,7 @@ function App() {
           </div>
 
           <div className="social">
-            <div><span>Instagram</span><span>Instagram</span><Send /></div>
+            <div><span>Instagram</span><Send /></div>
             <small>© 2026 MCA Notes Portal. All rights reserved.</small>
           </div>
         </div>
