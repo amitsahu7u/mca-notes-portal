@@ -20,7 +20,7 @@ const semesters = {
     "C Programming and Data Structure",
     "Database Management System",
     "Data Communication and Computer Networks",
-    "Mathematical Foundation of Computer Applications",
+    "Mathematical Foundation of Computer Science",
     "Communicative English",
     "Programming in C & Data Structure Lab",
     "Oracle Lab",
