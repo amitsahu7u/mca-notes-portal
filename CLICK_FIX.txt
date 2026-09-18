@@ -1,0 +1,15 @@
+CARD CLICK FIX APPLIED
+
+The subject cards now:
+- open the subject notes page when the card is clicked
+- open the same page when the blue arrow is clicked
+- support Enter/Space keyboard activation
+- keep the subject image non-blocking for clicks
+
+Run:
+npm run build
+
+Then:
+git add .
+git commit -m "Fix subject card click"
+git push
