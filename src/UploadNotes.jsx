@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { auth, db } from "./firebase";
+
 import {
   addDoc,
   collection,
@@ -9,7 +10,7 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-
+import "./style.css";
 import {
   CLOUDINARY_UPLOAD_URL,
   CLOUDINARY_UPLOAD_PRESET,
