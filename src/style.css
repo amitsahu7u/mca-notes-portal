@@ -1080,6 +1080,11 @@ footer {
     height: 46px;
     font-size: 15px;
   }
+ 
+   .kuu-notess {
+  font-size: 17px;
+  background-color: black;
+}
 
   .header {
     height: 132px;
