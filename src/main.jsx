@@ -177,7 +177,7 @@ function App() {
 
     const timer = setTimeout(() => {
       setShowWelcomeCard(false);
-    }, 1000);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [showWelcomeCard]);
@@ -617,7 +617,7 @@ function App() {
           <div className="container hero-content">
             <div className="eyebrow">OFFICIAL STUDENT NOTES PORTAL</div>
             <h1>MCA <span>Notes Portal</span></h1>
-            <h2>KHALLIKOTE UNITARY UNIVERSITY
+            <h2><u>KHALLIKOTE UNITARY UNIVERSITY</u>
                , BERHAMPUR, ODISHA</h2>
             <div className="hero-line" />
             <p className="hero-features">
