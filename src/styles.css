@@ -67,6 +67,9 @@ select {
   margin-right: 12px;
 }
 
+.kuu {
+  color: greenyellow;
+}
 .brand-title {
   font-weight: 800;
   font-size: 24px;

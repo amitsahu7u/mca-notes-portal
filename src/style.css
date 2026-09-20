@@ -155,6 +155,11 @@ select {
   display: none;
 }
 
+.kuu-notess {
+  font-size: 27px;
+  background-color: black;
+}
+
 
 /* =========================================================
    PROFESSIONAL HEADER BUTTONS

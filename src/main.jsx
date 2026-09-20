@@ -617,7 +617,7 @@ function App() {
           <div className="container hero-content">
             <div className="eyebrow">OFFICIAL STUDENT NOTES PORTAL</div>
             <h1>MCA <span>Notes Portal</span></h1>
-            <h2><u>KHALLIKOTE UNITARY UNIVERSITY</u>
+            <h2><u><span className="kuu-notess">KHALLIKOTE UNITARY UNIVERSITY</span></u>
                , BERHAMPUR, ODISHA</h2>
             <div className="hero-line" />
             <p className="hero-features">
