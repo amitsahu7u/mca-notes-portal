@@ -448,7 +448,7 @@ function App() {
                 KUU MCA <span>Notes Portal</span>
               </div>
               <div className="brand-subtitle">
-                UNIVERSITY, BERHAMPUR, ODISHA
+                KUU, BERHAMPUR, ODISHA
               </div>
               <div className="brand-tagline">
                 Learn Together, Grow Together
@@ -617,7 +617,8 @@ function App() {
           <div className="container hero-content">
             <div className="eyebrow">OFFICIAL STUDENT NOTES PORTAL</div>
             <h1>MCA <span>Notes Portal</span></h1>
-            <h2>UNIVERSITY, BERHAMPUR, ODISHA</h2>
+            <h2>KHALLIKOTE UNITARY UNIVERSITY
+               , BERHAMPUR, ODISHA</h2>
             <div className="hero-line" />
             <p className="hero-features">
               Semester-wise <b>|</b> Subject-wise <b>|</b> Daily Notes
